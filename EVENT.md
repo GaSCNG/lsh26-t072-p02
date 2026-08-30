@@ -3,7 +3,10 @@
 ## Event Start Code
 
 ```
-LSH26-8490-C900
+Team ID: LSH26-T072
+Problem ID: P02
+Event Start Code: LSH26-8490-C900
+Repository: lsh26-t072-p02
 ```
 
 ## Pre-Event Material Declaration
