@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Expiry Shelf Check — Khulna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:        #EEF1EA;
+    --paper:     #FBFBF8;
+    --ink:       #1E3A2F;
+    --ink-soft:  #4A5D53;
+    --line:      #D8DDD2;
+    --expired:   #B23A34;
+    --expired-bg:#F7E7E5;
+    --soon:      #C97A2B;
+    --soon-bg:   #F8ECD9;
+    --mid:       #8A7A2E;
+    --mid-bg:    #F2F0DC;
+    --safe:      #4C7A5D;
+    --safe-bg:   #E4EDE6;
+    --returned:  #5B6B73;
+    --returned-bg:#E7EBEC;
+    --accent:    #1E3A2F;
+    --shadow:    0 1px 2px rgba(30,58,47,0.06), 0 4px 14px rgba(30,58,47,0.07);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .display{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* Header */
+  header{background:var(--ink);color:#F4F1E8;padding:22px 32px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;}
+  header .title{font-family:'Fraunces',serif;font-weight:600;font-size:26px;letter-spacing:-0.01em;}
+  header .sub{font-size:13px;color:#B9C4B7;margin-top:4px;}
+  header .brand-mark{display:flex;align-items:center;gap:10px;}
+  .rx{width:34px;height:34px;border-radius:8px;background:#F4F1E8;color:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:18px;flex-shrink:0;}
+
+  main{max-width:1180px;margin:0 auto;padding:24px 20px 60px;}
+
+  /* Summary cards */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;}
+  .card.expired::before{background:var(--expired);}
+  .card.soon::before{background:var(--soon);}
+  .card.mid::before{background:var(--mid);}
+  .card.safe::before{background:var(--safe);}
+  .card .label{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+  .card.expired .label{color:var(--expired);}
+  .card.soon .label{color:var(--soon);}
+  .card.mid .label{color:var(--mid);}
+  .card.safe .label{color:var(--safe);}
+  .card .count{font-family:'Fraunces',serif;font-size:34px;font-weight:600;margin:2px 0 6px;color:var(--ink);}
+  .card .risk{font-size:11px;color:var(--ink-soft);}
+  .card .risk b{font-family:'IBM Plex Mono',monospace;color:var(--ink);}
+
+  /* Toolbar */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .toolbar input[type=text], .toolbar select{
+    background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);
+  }
+  .toolbar input[type=text]{flex:1;min-width:200px;}
+  .toolbar select{min-width:150px;}
+  .btn{background:var(--ink);color:#F4F1E8;border:none;border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+  .btn:hover{background:#122820;}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn.ghost:hover{background:var(--paper);}
+  .btn.small{padding:5px 10px;font-size:12px;border-radius:6px;}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap;}
+  .tab{padding:9px 14px;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+  .tab.active{color:var(--ink);border-bottom-color:var(--ink);}
+  .tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;}
+  .tab[data-tab="expired"] .dot{background:var(--expired);}
+  .tab[data-tab="soon"] .dot{background:var(--soon);}
+  .tab[data-tab="mid"] .dot{background:var(--mid);}
+  .tab[data-tab="safe"] .dot{background:var(--safe);}
+  .tab[data-tab="returned"] .dot{background:var(--returned);}
+
+  /* Table */
+  .table-wrap{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);background:#F2F4EE;font-weight:600;}
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#F5F7F1;}
+  td.num, th.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .empty-row td{padding:34px;text-align:center;color:var(--ink-soft);font-size:13px;}
+  .status-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+  .status-chip.expired{background:var(--expired-bg);color:var(--expired);}
+  .status-chip.soon{background:var(--soon-bg);color:var(--soon);}
+  .status-chip.mid{background:var(--mid-bg);color:var(--mid);}
+  .status-chip.safe{background:var(--safe-bg);color:var(--safe);}
+  .status-chip.returned{background:var(--returned-bg);color:var(--returned);}
+
+  /* Chart */
+  .chart-section{margin-top:26px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow);}
+  .chart-section h3{font-family:'Fraunces',serif;font-size:16px;margin:0 0 14px;font-weight:600;}
+  #chart{width:100%;height:220px;}
+  .bar-label{font-size:10px;fill:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .bar-value{font-size:9.5px;fill:var(--ink);font-family:'IBM Plex Mono',monospace;}
+
+  /* Modal */
+  .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(30,58,47,0.35);align-items:center;justify-content:center;z-index:50;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:var(--paper);border-radius:12px;padding:22px 24px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+  .modal h3{font-family:'Fraunces',serif;margin:0 0 14px;font-size:18px;}
+  .modal label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.04em;}
+  .modal input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:'Inter',sans-serif;font-size:13.5px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+  footer{text-align:center;padding:20px;font-size:11.5px;color:var(--ink-soft);}
+
+  @media(max-width:820px){
+    .cards{grid-template-columns:repeat(2,1fr);}
+    table{font-size:12px;}
+    thead th, tbody td{padding:8px;}
+  }
+  @media(max-width:520px){
+    .cards{grid-template-columns:1fr;}
+    header{padding:18px 18px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-mark">
+    <div class="rx">℞</div>
+    <div>
+      <div class="title">Pharmacy Expiry Shelf Check</div>
+      <div class="sub" id="sub-line">Khulna Neighbourhood Pharmacy</div>
+    </div>
+  </div>
+  <button class="btn ghost" id="add-btn" style="color:#F4F1E8;border-color:#41564A;">+ Quick Add</button>
+</header>
+
+<main>
+  <div class="cards" id="cards"></div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search by name or company…">
+    <select id="company-filter"></select>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="expired"><span class="dot"></span>Expired</div>
+    <div class="tab" data-tab="soon"><span class="dot"></span>0–30 Days</div>
+    <div class="tab" data-tab="mid"><span class="dot"></span>31–90 Days</div>
+    <div class="tab" data-tab="safe"><span class="dot"></span>Safe</div>
+    <div class="tab" data-tab="returned"><span class="dot"></span>Returned</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Company</th><th>Batch</th>
+          <th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Total Value</th>
+          <th class="num">Days Left</th><th>Expiry Date</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <div class="chart-section">
+    <h3>Value at Risk — Next 6 Months</h3>
+    <svg id="chart" viewBox="0 0 900 220" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</main>
+
+<footer>Pharmacy Expiry Shelf Check · all data is generated in-browser, nothing leaves your device</footer>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <h3>Quick Add Medicine</h3>
+    <label>Name</label><input type="text" id="f-name" placeholder="e.g. Paracetamol 500mg">
+    <label>Company</label><input type="text" id="f-company" placeholder="e.g. Square Pharma">
+    <label>Batch</label><input type="text" id="f-batch" placeholder="e.g. SQ2026-045">
+    <label>Quantity</label><input type="number" id="f-qty" value="50" min="1">
+    <label>Unit Price (Tk)</label><input type="number" id="f-price" value="10" min="0" step="0.5">
+    <label>Shelf Life (days from today, default 2 years)</label><input type="number" id="f-days" value="730">
+    <div class="modal-actions">
+      <button class="btn ghost" id="cancel-btn">Cancel</button>
+      <button class="btn" id="save-btn">Add Medicine</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ───────────────────────────────────────────────────────────
+// Domain model (mirrors Medicine.java / StockManager.java)
+// ───────────────────────────────────────────────────────────
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+function addDays(base, days){ const d = new Date(base); d.setDate(d.getDate()+days); return d; }
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function fmtDate(d){ return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtTk(v){ return 'Tk ' + v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtTkShort(v){ return 'Tk ' + Math.round(v).toLocaleString('en-IN'); }
+function uid(){ return 'M-' + Math.random().toString(36).slice(2,10).toUpperCase(); }
+
+let nextId = 1000;
+function medicine(name, company, batch, quantity, expiryOffsetDays, unitPrice){
+  return {
+    id: 'M' + (nextId++),
+    name, company, batch, quantity,
+    expiry: addDays(TODAY, expiryOffsetDays),
+    unitPrice,
+    returned: false
+  };
+}
+
+function statusOf(m){
+  if(m.returned) return 'returned';
+  const d = daysBetween(TODAY, m.expiry);
+  if(d < 0) return 'expired';
+  if(d <= 30) return 'soon';
+  if(d <= 90) return 'mid';
+  return 'safe';
+}
+function daysLeft(m){ return daysBetween(TODAY, m.expiry); }
+function totalValue(m){ return m.quantity * m.unitPrice; }
+
+// ── 44 sample medicines (same distribution as SampleData.java) ──
+let stock = [
+  // EXPIRED
+  medicine("Napa 500mg","Beximco Pharma","BX2024-001",120,-5,4.50),
+  medicine("Amoxicillin 250mg","Square Pharma","SQ2024-002",80,-15,12.00),
+  medicine("Metformin 500mg","ACI Limited","ACI2024-003",200,-30,8.50),
+  medicine("Omeprazole 20mg","Incepta Pharma","IN2024-004",60,-45,15.00),
+  medicine("Losartan 50mg","Renata Ltd","RL2024-005",90,-60,22.00),
+  medicine("Atorvastatin 20mg","Eskayef","ES2024-006",45,-3,35.00),
+  medicine("Cetirizine 10mg","Beximco Pharma","BX2024-007",150,-20,6.00),
+  medicine("Pantoprazole 40mg","Square Pharma","SQ2024-008",70,-10,18.00),
+  // EXPIRING SOON 0-30
+  medicine("Azithromycin 500mg","ACI Limited","ACI2025-009",55,5,45.00),
+  medicine("Vitamin C 500mg","Incepta Pharma","IN2025-010",200,12,5.00),
+  medicine("Clopidogrel 75mg","Renata Ltd","RL2025-011",60,18,28.00),
+  medicine("Doxycycline 100mg","Eskayef","ES2025-012",40,25,20.00),
+  medicine("Amlodipine 5mg","Beximco Pharma","BX2025-013",110,7,14.00),
+  medicine("Ranitidine 150mg","Square Pharma","SQ2025-014",85,22,9.00),
+  medicine("Metronidazole 400mg","ACI Limited","ACI2025-015",130,29,7.50),
+  medicine("Montelukast 10mg","Incepta Pharma","IN2025-016",50,3,32.00),
+  medicine("Fexofenadine 120mg","Renata Ltd","RL2025-017",75,15,24.00),
+  // 31-90
+  medicine("Lisinopril 10mg","Eskayef","ES2025-018",95,35,18.50),
+  medicine("Ciprofloxacin 500mg","Beximco Pharma","BX2025-019",65,45,25.00),
+  medicine("Diclofenac 50mg","Square Pharma","SQ2025-020",180,60,6.00),
+  medicine("Fluoxetine 20mg","ACI Limited","ACI2025-021",40,75,38.00),
+  medicine("Simvastatin 40mg","Incepta Pharma","IN2025-022",55,50,22.00),
+  medicine("Warfarin 5mg","Renata Ltd","RL2025-023",30,88,42.00),
+  medicine("Salbutamol 4mg","Eskayef","ES2025-024",100,40,11.00),
+  medicine("Furosemide 40mg","Beximco Pharma","BX2025-025",70,65,9.50),
+  medicine("Clonazepam 0.5mg","Square Pharma","SQ2025-026",45,80,15.00),
+  medicine("Ibuprofen 400mg","ACI Limited","ACI2025-027",160,55,8.00),
+  // SAFE
+  medicine("Paracetamol 500mg","Incepta Pharma","IN2026-028",300,120,4.50),
+  medicine("Amoxiclav 625mg","Renata Ltd","RL2026-029",80,180,55.00),
+  medicine("Aspirin 75mg","Eskayef","ES2026-030",250,150,5.00),
+  medicine("Vitamin B Complex","Beximco Pharma","BX2026-031",120,200,10.00),
+  medicine("Calcium 500mg","Square Pharma","SQ2026-032",90,365,12.00),
+  medicine("Zinc 20mg","ACI Limited","ACI2026-033",150,270,7.00),
+  medicine("Folic Acid 5mg","Incepta Pharma","IN2026-034",200,300,3.50),
+  medicine("Metoprolol 50mg","Renata Ltd","RL2026-035",75,240,16.00),
+  medicine("Esomeprazole 40mg","Eskayef","ES2026-036",60,195,28.00),
+  medicine("Levofloxacin 500mg","Beximco Pharma","BX2026-037",50,160,48.00),
+  medicine("Insulin Glargine","Square Pharma","SQ2026-038",20,400,350.00),
+  medicine("Rabeprazole 20mg","ACI Limited","ACI2026-039",85,280,22.00),
+  medicine("Telmisartan 40mg","Incepta Pharma","IN2026-040",110,320,18.00),
+  medicine("Pregabalin 75mg","Renata Ltd","RL2026-041",35,210,65.00),
+  medicine("Levothyroxine 50mcg","Eskayef","ES2026-042",120,180,12.00),
+  medicine("Glimepiride 2mg","Beximco Pharma","BX2026-043",90,250,14.00),
+  medicine("Bisoprolol 5mg","Square Pharma","SQ2026-044",60,330,20.00),
+];
+
+const STATUS_LABEL = {expired:'Expired',soon:'Expiring Soon',mid:'Expiring 31–90d',safe:'Safe',returned:'Returned'};
+
+let activeTab = 'expired';
+let searchQuery = '';
+let companyFilter = 'All';
+
+// ───────────────────────────────────────────────────────────
+// Rendering
+// ───────────────────────────────────────────────────────────
+function render(){
+  document.getElementById('sub-line').textContent =
+    'Khulna Neighbourhood Pharmacy · Today: ' + TODAY.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  renderCards();
+  renderCompanyFilter();
+  renderTable();
+  renderChart();
+}
+
+function renderCards(){
+  const groups = ['expired','soon','mid','safe'];
+  const cfg = {
+    expired:{label:'EXPIRED', cls:'expired'},
+    soon:{label:'EXPIRING SOON · 0–30d', cls:'soon'},
+    mid:{label:'EXPIRING · 31–90d', cls:'mid'},
+    safe:{label:'SAFE · >90d', cls:'safe'}
+  };
+  const el = document.getElementById('cards');
+  el.innerHTML = groups.map(g=>{
+    const items = stock.filter(m=>statusOf(m)===g);
+    const count = items.length;
+    const value = items.reduce((s,m)=>s+totalValue(m),0);
+    const showRisk = (g==='expired' || g==='soon');
+    return `<div class="card ${cfg[g].cls}">
+      <div class="label">${cfg[g].label}</div>
+      <div class="count">${count}</div>
+      ${showRisk ? `<div class="risk">Value at Risk: <b>${fmtTkShort(value)}</b></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderCompanyFilter(){
+  const sel = document.getElementById('company-filter');
+  const prev = sel.value || companyFilter;
+  const companies = ['All', ...new Set(stock.map(m=>m.company))].sort((a,b)=> a==='All'?-1:b==='All'?1:a.localeCompare(b));
+  sel.innerHTML = companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+  sel.value = companies.includes(prev) ? prev : 'All';
+  companyFilter = sel.value;
+}
+
+function renderTable(){
+  const q = searchQuery.toLowerCase();
+  const rows = stock.filter(m=>{
+    if(statusOf(m) !== activeTab) return false;
+    if(companyFilter !== 'All' && m.company !== companyFilter) return false;
+    if(q && !m.name.toLowerCase().includes(q) && !m.company.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // update tab counts
+  document.querySelectorAll('.tab').forEach(t=>{
+    const tab = t.dataset.tab;
+    const c = stock.filter(m=>statusOf(m)===tab).length;
+    const base = {expired:'Expired',soon:'0–30 Days',mid:'31–90 Days',safe:'Safe',returned:'Returned'}[tab];
+    t.innerHTML = `<span class="dot"></span>${base} (${c})`;
+  });
+
+  const tbody = document.getElementById('table-body');
+  if(rows.length === 0){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No medicines match this view.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(m=>{
+    const st = statusOf(m);
+    const dl = daysLeft(m);
+    return `<tr>
+      <td>${m.name}</td>
+      <td>${m.company}</td>
+      <td class="mono">${m.batch}</td>
+      <td class="num">${m.quantity}</td>
+      <td class="num">${fmtTk(m.unitPrice)}</td>
+      <td class="num">${fmtTk(totalValue(m))}</td>
+      <td class="num">${dl}</td>
+      <td>${fmtDate(m.expiry)}</td>
+      <td><span class="status-chip ${st}">${STATUS_LABEL[st]}</span></td>
+      <td>${st!=='returned' ? `<button class="btn small ghost" onclick="markReturned('${m.id}')">Mark Returned</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderChart(){
+  const svg = document.getElementById('chart');
+  const months = [];
+  for(let i=0;i<6;i++){
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth()+i, 1);
+    months.push(d);
+  }
+  const values = months.map(mDate=>{
+    return stock
+      .filter(m=>!m.returned && m.expiry >= TODAY)
+      .filter(m=> m.expiry.getFullYear()===mDate.getFullYear() && m.expiry.getMonth()===mDate.getMonth())
+      .reduce((s,m)=>s+totalValue(m),0);
+  });
+  const maxVal = Math.max(...values, 1);
+  const padL=70, padR=20, padT=16, padB=36, W=900, H=220;
+  const cW = W-padL-padR, cH = H-padT-padB;
+  const n = months.length;
+  const barW = cW/(n*2), gap = barW;
+
+  let svgHtml = '';
+  // gridlines
+  for(let i=1;i<=4;i++){
+    const y = padT + cH - (cH*i/4);
+    svgHtml += `<line x1="${padL}" y1="${y}" x2="${padL+cW}" y2="${y}" stroke="#DCE2D6" stroke-width="1"/>`;
+    svgHtml += `<text x="4" y="${y+4}" class="bar-label">${fmtTkShort(maxVal*i/4)}</text>`;
+  }
+  months.forEach((mDate,i)=>{
+    const val = values[i];
+    const barH = val>0 ? Math.max(4, cH*val/maxVal) : 2;
+    const bx = padL + i*(barW+gap) + gap/2;
+    const by = padT + cH - barH;
+    const hue = 28 + i*20;
+    svgHtml += `<rect x="${bx}" y="${by}" width="${barW}" height="${barH}" rx="4" fill="hsl(${hue},55%,52%)"/>`;
+    const label = mDate.toLocaleDateString('en-GB',{month:'short'}) + " '" + String(mDate.getFullYear()).slice(2);
+    svgHtml += `<text x="${bx+barW/2}" y="${padT+cH+18}" text-anchor="middle" class="bar-label">${label}</text>`;
+    if(val>0){
+      svgHtml += `<text x="${bx+barW/2}" y="${by-6}" text-anchor="middle" class="bar-value">${fmtTkShort(val)}</text>`;
+    }
+  });
+  svgHtml += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+cH}" stroke="#B7C0AE"/>`;
+  svgHtml += `<line x1="${padL}" y1="${padT+cH}" x2="${padL+cW}" y2="${padT+cH}" stroke="#B7C0AE"/>`;
+  svg.innerHTML = svgHtml;
+}
+
+// ───────────────────────────────────────────────────────────
+// Interactions
+// ───────────────────────────────────────────────────────────
+function markReturned(id){
+  const m = stock.find(x=>x.id===id);
+  if(m){ m.returned = true; render(); }
+}
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = t.dataset.tab;
+    renderTable();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e=>{
+  searchQuery = e.target.value;
+  renderTable();
+});
+document.getElementById('company-filter').addEventListener('change', e=>{
+  companyFilter = e.target.value;
+  renderTable();
+});
+
+const backdrop = document.getElementById('modal-backdrop');
+document.getElementById('add-btn').addEventListener('click', ()=> backdrop.classList.add('open'));
+document.getElementById('cancel-btn').addEventListener('click', ()=> backdrop.classList.remove('open'));
+document.getElementById('save-btn').addEventListener('click', ()=>{
+  const name = document.getElementById('f-name').value.trim();
+  const company = document.getElementById('f-company').value.trim();
+  const batch = document.getElementById('f-batch').value.trim();
+  const qty = parseInt(document.getElementById('f-qty').value) || 1;
+  const price = parseFloat(document.getElementById('f-price').value) || 0;
+  const days = parseInt(document.getElementById('f-days').value) || 730;
+  if(!name || !company || !batch){ alert('Please fill in name, company and batch.'); return; }
+  stock.push(medicine(name, company, batch, qty, days, price));
+  backdrop.classList.remove('open');
+  ['f-name','f-company','f-batch'].forEach(id=>document.getElementById(id).value='');
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
