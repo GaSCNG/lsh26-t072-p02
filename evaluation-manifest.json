@@ -1,0 +1,52 @@
+{
+  "team_id": "LSH26-T072",
+  "problem_id": "P12",
+  "problem_title": "Personal Ledger Manager",
+  "event_start_code": "LSH26-8490-C900",
+  "repository_url": "https://github.com/LSH26-T072/lsh26-t072-p02",
+  "live_url": "N/A",
+  "language": "Java",
+  "entrypoint": "javac PersonalLedger.java && java PersonalLedger <json-file> [case-id]",
+  "requirements": {
+    "R1_salary_and_expense_input": {
+      "status": "implemented",
+      "notes": "Salary parsed from salary_bdt field; expenses parsed from expenses[] array with date, category, shop, amount. Image OCR is handled at input level via the JSON test format."
+    },
+    "R2_monthly_dashboard": {
+      "status": "implemented",
+      "notes": "Total spent vs salary, category breakdown with % bars, top-5 expenses for both current and last month."
+    },
+    "R3_forecast_and_insights": {
+      "status": "implemented",
+      "notes": "Daily burn rate projected to month end. Six named insights referencing specific categories and BDT amounts. Pro-rated comparison against last month."
+    },
+    "R4_savings_pockets_and_dps": {
+      "status": "implemented",
+      "notes": "Per-pocket: target, monthly contribution, months needed (ceiling division), estimated completion month. DPS simulation using the specified rule (deposit then interest each month)."
+    }
+  },
+  "team_members": [
+    {
+      "handle": "GaSCNG",
+      "contribution": "Core data model, expense aggregation, category breakdown"
+    },
+    {
+      "handle": "antikxd-chowp",
+      "contribution": "Forecast engine, pro-rated comparison, insights generation"
+    },
+    {
+      "handle": "saniatsani",
+      "contribution": "Savings pockets, DPS compound-interest simulation, output formatting"
+    }
+  ],
+  "dependencies": [],
+  "test_cases_verified": [
+    "PUB-01","PUB-02","PUB-03","PUB-04","PUB-05","PUB-06","PUB-07",
+    "PUB-08","PUB-09","PUB-10","PUB-11","PUB-12","PUB-13"
+  ],
+  "known_limitations": [
+    "Live image OCR not implemented — JSON input supplies pre-parsed fields",
+    "No interactive CLI prompt — reads from JSON file only",
+    "Spending projection assumes constant daily rate for remainder of month"
+  ]
+}
